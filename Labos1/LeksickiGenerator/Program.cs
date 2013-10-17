@@ -59,7 +59,7 @@ namespace LeksickiGenerator
             {
                 try
                 {
-                    var serialised = Serialiser.WriteClass(def);
+                    var serialised = Serializer.WriteClass(def);
                     file.WriteLine(serialised);
                 }
                 catch (Exception ex)

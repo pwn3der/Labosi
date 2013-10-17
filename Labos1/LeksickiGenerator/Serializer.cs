@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -12,14 +13,14 @@ using System.Reflection;
  */
 namespace Engine.JSON
 {
-    public static class Serialiser
+    public static class Serializer
     {
         //the inputs will be classes with properties of <type> or a list<type>
         //in the case of properties of <type> then we make a class
         //in the case of list<type>, write an array;
         public static String WriteClass(Object obj)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             sb.Append("{");
 
@@ -28,7 +29,7 @@ namespace Engine.JSON
             //loop thru all the properties in this type
             for (int i = 0; i < pi.Length; i++)
             {
-                Type propertyType = pi[i].PropertyType.GetType();
+                Type propertyType = pi[i].PropertyType;
                 Object propertyValue = GetProperty(obj, pi[i].Name);
 
                 if (propertyType.IsGenericType || propertyType.IsArray)
@@ -54,16 +55,13 @@ namespace Engine.JSON
 
         private static String WriteArray(Object obj)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
-            //need to cast this list<T> or array to list<Object>
-            List<Object> objList;
-
-            //have to use reflection to call this generic method
-            MethodInfo method = typeof(Serialiser).GetMethod("CastToObjectList", BindingFlags.NonPublic | BindingFlags.Static);
+	        //have to use reflection to call this generic method
+            MethodInfo method = typeof(Serializer).GetMethod("CastToObjectList", BindingFlags.NonPublic | BindingFlags.Static);
             MethodInfo generic = method.MakeGenericMethod(obj.GetType().GetGenericArguments()[0]);
 
-            objList = (List<Object>)generic.Invoke(null, new Object[] { obj });
+            var objList = (List<Object>)generic.Invoke(null, new[] { obj });
 
             //it's a type list, array it is, write a [ value, ... ]
             sb.Append('[');
@@ -86,7 +84,7 @@ namespace Engine.JSON
         //write a pair "name" : value
         private static String WriteDataPair(String name, Object obj)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             //write the name
             sb.Append('\"' + name + "\":");
@@ -99,7 +97,7 @@ namespace Engine.JSON
         //just writes the 'value'
         private static String WriteValue(Object obj)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             if (obj == null)
                 sb.Append("null");
             else
@@ -107,18 +105,18 @@ namespace Engine.JSON
                 Type type = obj.GetType();
 
                 //if its an object, WriteOut<T> again.
-                //if its a primitative, write it, special case for string
+                //if its a primitives, write it, special case for string
                 if (type.IsGenericType)
                 {
                     sb.Append(WriteArray(obj));
                 }
                 else if (type == typeof(double))
                 {
-                    sb.Append(((double)obj).ToString());
+                    sb.Append(((double)obj).ToString(CultureInfo.InvariantCulture));
                 }
                 else if (type == typeof(int))
                 {
-                    sb.Append(((int)obj).ToString());
+                    sb.Append(((int)obj).ToString(CultureInfo.InvariantCulture));
                 }
                 else if (type == typeof(bool))
                 {
@@ -126,7 +124,7 @@ namespace Engine.JSON
                 }
                 else if (type == typeof(String))
                 {
-                    sb.Append('\"' + ((String)obj) + '\"');
+                    sb.AppendFormat("{0}{1}{0}", '\"', ((String)obj));
                 }
                 else
                 {
@@ -142,24 +140,5 @@ namespace Engine.JSON
             return obj.GetType().InvokeMember(propertyName,
                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty, Type.DefaultBinder, obj, null);
         }
-
-        private static List<Object> CastToObjectList<T>(List<T> list)
-        {
-            List<Object> objList = new List<Object>();
-            foreach (T t in list)
-                objList.Add(t);
-
-            return objList;
-
-        }
-
-        //private static List<Object> CastToObjectList<T>(T[] array)
-        //{
-        //    List<Object> objList = new List<Object>();
-        //    foreach (T t in array)
-        //        objList.Add(t);
-
-        //    return objList;
-        //}
     }
 }

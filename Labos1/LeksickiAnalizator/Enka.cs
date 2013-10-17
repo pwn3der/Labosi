@@ -16,8 +16,8 @@ namespace LeksickiAnalizator
 		public List<string> prijelaziKeys { get; set; }
 		public List<string> prijelaziValues { get; set; }
 
-        [NonSerialized]
-        public Dictionary<string, string> prijelazi { get; set; }
+		public Dictionary<string, string> prijelazi;
+		
 		private List<string> trenutnaStanja;
 
 		public Enka()
@@ -32,12 +32,6 @@ namespace LeksickiAnalizator
                     this.prijelazi.Add(this.prijelaziKeys[index], this.prijelaziValues[index]);
             }
 		}
-
-        public void PripremiZaSerijalizaciju()
-        {
-            this.prijelaziKeys = this.prijelazi.Keys.ToList();
-            this.prijelaziValues = this.prijelazi.Values.ToList();
-        }
 
 
 		public void Resetiraj()
@@ -79,8 +73,7 @@ namespace LeksickiAnalizator
 			this.trenutnaStanja.AddRange(novaStanja);
 		}
 
-		List<string> DodajEokolinu(List<string> novaStanja)
-		{
+		List<string> DodajEokolinu(List<string> novaStanja) {
 			int velicina;
 			string pomocna;
 			string[] polje;
@@ -92,8 +85,9 @@ namespace LeksickiAnalizator
 					if (!prijelazi.ContainsKey(novaStanja[i]+"," + EpsilonPrijelazOznaka)) continue;
                     pomocna = this.prijelazi[novaStanja[i] + "," + EpsilonPrijelazOznaka];
 					polje = pomocna.Split(',');
-					for (int j = 0;j < polje.Length; j++){	   
-						if (!(novaStanja.Contains(polje[j]))) novaStanja.Add(polje[j]);
+					foreach (string stanje in polje) {
+						if (!(novaStanja.Contains(stanje))) 
+							novaStanja.Add(stanje);
 					}
 				}
 			}

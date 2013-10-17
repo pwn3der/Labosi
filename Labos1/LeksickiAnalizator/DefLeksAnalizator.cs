@@ -16,6 +16,7 @@ namespace LeksickiAnalizator
     [Serializable]
     public class Stanje
     {
+		public string Naziv { get; set; }
         public List<Pravilo> Pravila { get; set; }
     }
 
