@@ -13,7 +13,7 @@ namespace LeksickiGenerator
 		public List<string> prijelaziKeys { get; set; }
 		public List<string> prijelaziValues { get; set; }
 
-		public Dictionary<string, string> prijelazi { get; set; }
+		private Dictionary<string, string> prijelazi { get; set; }
 		private List<string> trenutnaStanja;
 
 

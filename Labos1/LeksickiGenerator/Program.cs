@@ -12,8 +12,10 @@ namespace LeksickiGenerator
 {
     public static class Program
     {
+        // TODO Provjeriti da li je '\n' char ili string kod ubacivanja u stanja
+
         static void Main(string[] args)
-        {
+        {            
             var def = new DefLeksAnalizator()
             {
                 PocetnoStanje = "S_pocetno",

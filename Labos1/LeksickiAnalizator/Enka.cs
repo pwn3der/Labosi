@@ -8,20 +8,23 @@ namespace LeksickiAnalizator
 {
 	public class Enka
 	{
+        private const string PrazniSkupStanjaOznaka = "#";
+        private const string EpsilonPrijelazOznaka = "$";
+
 		public string pocetnoStanje { get; set; }
 		public string prihStanje { get; set; }
 		public List<string> prijelaziKeys { get; set; }
 		public List<string> prijelaziValues { get; set; }
 
-		private Dictionary<string, string> prijelazi { get; set; }
+        [NonSerialized]
+        public Dictionary<string, string> prijelazi { get; set; }
 		private List<string> trenutnaStanja;
-
 
 		public Enka()
 		{
 			this.trenutnaStanja = new List<string>();
 
-            // Build dictionary only if this was de-serialized object
+            // Build dictionary only if this was deserialized object
             if (this.prijelaziKeys != null)
             {
                 this.prijelazi = new Dictionary<string, string>();
@@ -29,6 +32,12 @@ namespace LeksickiAnalizator
                     this.prijelazi.Add(this.prijelaziKeys[index], this.prijelaziValues[index]);
             }
 		}
+
+        public void PripremiZaSerijalizaciju()
+        {
+            this.prijelaziKeys = this.prijelazi.Keys.ToList();
+            this.prijelaziValues = this.prijelazi.Values.ToList();
+        }
 
 
 		public void Resetiraj()
@@ -48,22 +57,22 @@ namespace LeksickiAnalizator
 		{
 			List<string> novaStanja = new List<string>();
 			int brStanja = trenutnaStanja.Count;
-			string pomocna;
-			string pomocna2;
 
 			for(int i = 0; i < brStanja; i++)
 			{
-				pomocna2 = trenutnaStanja[i]+","+uZnak;
-				if (!prijelazi.ContainsKey(pomocna2)) continue;
-				pomocna = prijelazi[pomocna2];
-				var polje = pomocna.Split(',');
-				for (int j = 0;j < polje.Length; j++)
-				{
-					if( !novaStanja.Contains(polje[j]) && polje[j] !="#") 
-						novaStanja.Add(polje[j]);											
-				}	
+                string novaStanjaRaw;
+                var stanjeKey = trenutnaStanja[i] + "," + uZnak;
+                if (this.prijelazi.TryGetValue(stanjeKey, out novaStanjaRaw))
+                {
+                    var razdvojenaStanja = novaStanjaRaw.Split(',');
+                    for (int j = 0; j < razdvojenaStanja.Length; j++)
+                    {
+                        if (!novaStanja.Contains(razdvojenaStanja[j]) && razdvojenaStanja[j] != PrazniSkupStanjaOznaka)
+                            novaStanja.Add(razdvojenaStanja[j]);
+                    }
+                }
 			}
-			if (novaStanja.Count == 0) novaStanja.Add("#");
+            if (novaStanja.Count == 0) novaStanja.Add(PrazniSkupStanjaOznaka);
 			novaStanja = DodajEokolinu(novaStanja);
 
 			this.trenutnaStanja.Clear();
@@ -80,8 +89,8 @@ namespace LeksickiAnalizator
 				velicina = novaStanja.Count;
 				for( int i = 0; i < novaStanja.Count; i++)
 				{
-					if (!prijelazi.ContainsKey(novaStanja[i]+",$")) continue;
-					pomocna = prijelazi[novaStanja[i]+",$"];
+					if (!prijelazi.ContainsKey(novaStanja[i]+"," + EpsilonPrijelazOznaka)) continue;
+                    pomocna = this.prijelazi[novaStanja[i] + "," + EpsilonPrijelazOznaka];
 					polje = pomocna.Split(',');
 					for (int j = 0;j < polje.Length; j++){	   
 						if (!(novaStanja.Contains(polje[j]))) novaStanja.Add(polje[j]);
